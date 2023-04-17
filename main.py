@@ -4,10 +4,14 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, IntegerField
 from wtforms.validators import DataRequired, NumberRange
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'love_money'
-Bootstrap(app)
 
+def create_app():
+    app = Flask(__name__)
+    Bootstrap(app)
+    return app
+
+
+app = create_app()
 
 class AddBook(FlaskForm):
     book_name = StringField(label='Book Name', validators=[DataRequired()])
@@ -31,6 +35,7 @@ def add():
         new_entry = dict(title=form.book_name.data, author=form.book_author.data, rating=form.book_rating.data)
         all_books.append(new_entry)
         print(all_books)
+        return redirect(url_for("home"))
     return render_template("add.html", form=form)
 
 

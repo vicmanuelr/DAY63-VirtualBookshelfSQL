@@ -2,10 +2,13 @@
 {% block title %}Library{% endblock %}
 {% block content %}
   <h1>My Library</h1>
+    {% if books|count == 0: %}
+      <p>Library is empty.</p>
+    {% endif %}
     <ul>
-    {% for book in books: %}
-      <li>{{ book['title'] }} - {{ book["author"] }} - {{ book["rating"] }}/10</li>
-    {% endfor %}
+      {% for book in books %}
+        <li>{{ book['title'] }} - {{ book["author"] }} - {{ book["rating"] }}/10</li>
+      {% endfor %}
     </ul>
     <a href="/add">Add New Book</a>
 {% endblock %}
