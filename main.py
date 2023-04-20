@@ -3,15 +3,33 @@ from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, IntegerField
 from wtforms.validators import DataRequired, NumberRange
+from flask_sqlalchemy import SQLAlchemy
+
+
+# import sqlite3
+#
+# db = sqlite3.connect("books-collection.db")
+# cursor = db.cursor()
+# # cursor.execute("CREATE TABLE books ("
+# #                "id INTEGER PRIMARY KEY,"
+# #                "title varchar(250) NOT NULL UNIQUE,"
+# #                "author varchar(250) NOT NULL,"
+# #                "rating FLOAT NOT NULL)")
+# cursor.execute("INSERT INTO books VALUES(1, 'Harry Potter', 'J. K. Rowling', '9.3')")
+# db.commit()
 
 
 def create_app():
     app = Flask(__name__)
     Bootstrap(app)
-    return app
+    db = SQLAlchemy()
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///new-books-collection.db"
+    db.init_app(app)
+    return app, db
 
 
-app = create_app()
+app, db = create_app()
+
 
 class AddBook(FlaskForm):
     book_name = StringField(label='Book Name', validators=[DataRequired()])
