@@ -5,7 +5,6 @@ from wtforms import StringField, SubmitField, IntegerField
 from wtforms.validators import DataRequired, NumberRange
 from flask_sqlalchemy import SQLAlchemy
 
-
 # import sqlite3
 #
 # db = sqlite3.connect("books-collection.db")
@@ -18,18 +17,35 @@ from flask_sqlalchemy import SQLAlchemy
 # cursor.execute("INSERT INTO books VALUES(1, 'Harry Potter', 'J. K. Rowling', '9.3')")
 # db.commit()
 
+SECRET_KEY = '1234567890'
 
-def create_app():
-    app = Flask(__name__)
-    Bootstrap(app)
-    db = SQLAlchemy()
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///new-books-collection.db"
-    db.init_app(app)
-    return app, db
+app = Flask(__name__)
+Bootstrap(app)
+app.secret_key = 'SECRET_KEY'
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///new-books-collection.db"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy()
+db.init_app(app)
 
 
-app, db = create_app()
+class Book(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(250), nullable=False)
+    author = db.Column(db.String(250), nullable=False)
+    rating = db.Column(db.Float, nullable=False)
 
+    def __repr__(self):
+        return f'<Book {self.name}>'
+
+
+with app.app_context():
+    db.create_all()
+    new_book = Book(id=1, title="Harry Potter", author="J. K. Rowling", rating=9.3)
+    db.session.add(new_book)
+
+with app.app_context():
+    db.session.commit()
+    Book.query.all()
 
 class AddBook(FlaskForm):
     book_name = StringField(label='Book Name', validators=[DataRequired()])
