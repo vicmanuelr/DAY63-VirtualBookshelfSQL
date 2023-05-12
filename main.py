@@ -4,6 +4,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, IntegerField
 from wtforms.validators import DataRequired, NumberRange
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import exc
 
 # import sqlite3
 #
@@ -28,6 +29,7 @@ db = SQLAlchemy()
 db.init_app(app)
 
 
+# this code is for the database model and table
 class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(250), nullable=False)
@@ -38,37 +40,43 @@ class Book(db.Model):
         return f'<Book {self.name}>'
 
 
+# Create the database
 with app.app_context():
-    db.create_all()
-    new_book = Book(id=1, title="Harry Potter", author="J. K. Rowling", rating=9.3)
-    db.session.add(new_book)
+    try:
+        db.create_all()
+    except exc.IntegrityError:
+        pass
 
-with app.app_context():
-    db.session.commit()
-    Book.query.all()
 
+# this code is for the creation of the WTF FlaskForm for a new book entry
 class AddBook(FlaskForm):
     book_name = StringField(label='Book Name', validators=[DataRequired()])
     book_author = StringField(label='Book Author', validators=[DataRequired()])
     book_rating = IntegerField(label='Book Rating', validators=[NumberRange(min=0, max=10)])
     submit = SubmitField('Add Book')
 
+# this code is to verify form entries in an local array
 
-all_books = []
 
 
 @app.route('/')
 def home():
+    all_books = db.session.query(Book).all()
     return render_template("index.html", books=all_books)
 
 
 @app.route("/add", methods=["GET", "POST"])
 def add():
     form = AddBook()
-    if form.validate_on_submit():
-        new_entry = dict(title=form.book_name.data, author=form.book_author.data, rating=form.book_rating.data)
-        all_books.append(new_entry)
-        print(all_books)
+    if request.method == "POST":
+        new_entry = Book(title=form.book_name.data,
+                         author=form.book_author.data,
+                         rating=form.book_rating.data
+                         )
+        # entry_track = add_to_database(new_entry)
+        # print(entry_track)
+        db.session.add(new_entry)
+        db.session.commit()
         return redirect(url_for("home"))
     return render_template("add.html", form=form)
 
